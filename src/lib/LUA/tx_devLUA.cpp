@@ -81,6 +81,12 @@ static struct luaItem_string luaCELimit = {
     {"100mW CE LIMIT", CRSF_INFO},
     STR_EMPTYSPACE
 };
+
+static struct luaItem_command luaToggleLBT = {
+    {"Toggle LBT", CRSF_COMMAND},
+    lcsIdle, // step
+    STR_EMPTYSPACE
+};
 #endif
 
 //----------------------------POWER------------------
@@ -271,6 +277,9 @@ extern void ResetPower();
 extern uint8_t adjustPacketRateForBaud(uint8_t rate);
 extern void SetSyncSpam();
 extern void EnterBindingMode();
+#if defined(Regulatory_Domain_EU_CE_2400)
+extern bool LBTEnabled;
+#endif
 extern bool InBindingMode;
 extern bool RxWiFiReadyToSend;
 #if defined(USE_TX_BACKPACK)
@@ -418,6 +427,12 @@ static void luahandSimpleSendCmd(struct luaPropertiesCommon *item, uint8_t arg)
       msg = "Binding...";
       EnterBindingMode();
     }
+    #if defined(Regulatory_Domain_EU_CE_2400)
+    else if ((void *)item == (void *)&luaToggleLBT) {
+      msg = LBTEnabled?"Disabling LBT":"Enabling LBT";  
+      LBTEnabled = !LBTEnabled;
+    }
+    #endif
     else if ((void *)item == (void *)&luaVtxSend)
     {
       VtxTriggerSend();
@@ -655,6 +670,7 @@ static void registerLuaParameters()
 #if defined(Regulatory_Domain_EU_CE_2400)
   if (HAS_RADIO) {
     registerLUAParameter(&luaCELimit, NULL, luaPowerFolder.common.id);
+    registerLUAParameter(&luaToggleLBT, &luahandSimpleSendCmd);
   }
 #endif
   if ((HAS_RADIO || OPT_USE_TX_BACKPACK) && !firmwareOptions.is_airport) {

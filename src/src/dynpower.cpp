@@ -42,6 +42,9 @@ static void DynamicPower_SetToConfigPower()
     POWERMGNT::setPower((PowerLevels_e)config.GetPower());
 }
 
+#if defined(Regulatory_Domain_EU_CE_2400)
+extern bool LBTEnabled;
+#endif
 void DynamicPower_Init()
 {
     dynpower_mavg_lq = 100;
@@ -92,6 +95,9 @@ void DynamicPower_Update(uint32_t now)
   if ((connectionState == disconnected && armed) ||
     (boostChannel && (CRSF_to_BIT(ChannelData[AUX9 + boostChannel - 1]) == 0)))
   {
+    #if defined(Regulatory_Domain_EU_CE_2400)
+    LBTEnabled = false;
+    #endif
     DynamicPower_SetToConfigPower();
     return;
   }
